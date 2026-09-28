@@ -1,0 +1,47 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config SYSTEM_WG
+	tristate "WireGuard 'wg' command"
+	default n
+	depends on NET_WIREGUARD
+	---help---
+		Configure and inspect the WireGuard network device (wg0) with the
+		same sub-commands as wg(8): up, down, show, showconf, setconf,
+		saveconf, set, genkey, pubkey. Talks to the driver through the
+		ioctls in include/nuttx/net/wireguard.h; the only key material it
+		holds is what it reads from or writes to the configuration file.
+
+if SYSTEM_WG
+
+config SYSTEM_WG_PROGNAME
+	string "Program name"
+	default "wg"
+
+config SYSTEM_WG_PRIORITY
+	int "Task priority"
+	default 100
+
+config SYSTEM_WG_STACKSIZE
+	int "Stack size"
+	default 4096
+	---help---
+		"wg setconf" and "wg saveconf" go through stdio and the file
+		system; 2048 is not enough for that on some boards.
+
+config SYSTEM_WG_CONFIG_PATH
+	string "Default configuration file"
+	default "/data/wg0.conf"
+	---help---
+		Used by "wg setconf" and "wg saveconf" when no file is given, and
+		by the board start-up script to restore the configuration after a
+		reboot. The file has the [Interface] / [Peer] layout of wg(8) and
+		is interchangeable with a desktop WireGuard configuration.
+
+		The private key lives in this file and nowhere else on the user
+		side: the driver accepts it but never hands it back, so "wg
+		saveconf" takes it from here rather than from the device.
+
+endif
